@@ -1,0 +1,32 @@
+[
+    {
+        "userName": "nazaninns",
+        "name": "nazanin",
+        "email": "nazanin@yahoo.com",
+        "password": "123456",
+        "profilePic": ".\/users\/nazaninns\/pictures\/photo_2023-05-29_00-43-35.jpg",
+        "bio": ".\/users\/nazaninns\/bio\/bio.txt",
+        "userAdmin": true,
+        "isBlocked": false
+    },
+    {
+        "userName": "ali",
+        "name": "ali",
+        "email": "ali@yahoo.com",
+        "password": "123456",
+        "profilePic": ".\/users\/ali\/pictures\/served-christmas-table-setting-dark-tones-with-golden-deco.jpg",
+        "bio": ".\/users\/ali\/bio\/bio.txt",
+        "userAdmin": false,
+        "isBlocked": false
+    },
+    {
+        "userName": "zahra",
+        "name": "zahra",
+        "email": "n@yahoo.com",
+        "password": "123456",
+        "profilePic": ".\/users\/zahra\/pictures\/photo_2023-05-29_00-43-35.jpg",
+        "bio": ".\/default\/bio.txt",
+        "userAdmin": false,
+        "isBlocked": false
+    }
+]
