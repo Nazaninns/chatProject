@@ -1,9 +1,15 @@
 <?php
+include_once 'Connection.php';
 session_start();
-$jsonArray = [];
-if (is_file('userData.json')) {
-    $jsonArray = json_decode(file_get_contents('userData.json'), true);
-}
+$connection = Connection::getInstance()->getPdo();
+$stmt = $connection->prepare('select * from users');
+$stmt->execute();
+$users = $stmt->fetchAll();
+
+//$jsonArray = [];
+// if (is_file('userData.json')) {
+//     $jsonArray = json_decode(file_get_contents('userData.json'), true);
+// }
 
 if (isset($_POST['submit'])) {
     $users = [
@@ -13,18 +19,20 @@ if (isset($_POST['submit'])) {
         'password' => passwordValidation($_POST["password"]),
         'profilePic' => './default/pic.txt',
         'bio' => './default/bio.txt',
-        'userAdmin'=>false,
-        'isBlocked'=>false
+        'userAdmin' => false,
+        'isBlocked' => false
     ];
 
     $_SESSION['errorUserName'] = errorUserName($users['userName']);
     $_SESSION['errorName'] = errorName($users['name']);
     $_SESSION['errorEmail'] = errorEmail($users['email']);
     $_SESSION['errorPassword'] = errorPassword($users['password']);
-    if ($_SESSION['errorUserName']=='' && $_SESSION['errorName']=='' && $_SESSION['errorEmail']=='' && $_SESSION['errorPassword']=='') {
+    if ($_SESSION['errorUserName'] == '' && $_SESSION['errorName'] == '' && $_SESSION['errorEmail'] == '' && $_SESSION['errorPassword'] == '') {
 
-    $jsonArray[] = $users;
-        file_put_contents('userData.json', json_encode($jsonArray, JSON_PRETTY_PRINT));
+        // $jsonArray[] = $users;
+        // file_put_contents('userData.json', json_encode($jsonArray, JSON_PRETTY_PRINT));
+        $stmt = $connection->prepare('insert into users(userName,name,email,password,bio,userAdmin,isBlocked,profilePic) values(:userName,:name,:email,:password,:bio,:userAdmin,:isBlocked,:profilePIc)');
+        $stmt->execute(['userName' => $users['userName'], 'name' => $users['name'], 'email' => $users['email'], 'password' => $users['password'], 'bio' => $users['bio'], 'userAdmin' => $users['userAdmin'], 'isBlocked' => $users['isBlocked'],'profilePic'=>$users['profilePic']]);
         header('Location:signIn.php');
 
 
@@ -33,20 +41,23 @@ if (isset($_POST['submit'])) {
 if (isset($_POST['signIn'])) {
     if ($_POST['username-log'] != "" && $_POST['password-log'] != "") {
         if (signIn($_POST['username-log'], $_POST['password-log'])) {
-$users= json_decode(file_get_contents('userData.json'),1);
-foreach ($users as $user => $data) {
-    if ($data['userName'] == $_POST['username-log'])
-        $_SESSION['user'] =$data;
-}
+            //$users = json_decode(file_get_contents('userData.json'), 1);
+            $stmt=$connection->prepare('select * from users');
+            $stmt->execute();
+           $users= $stmt->fetchAll();
+            foreach ($users as $user => $data) {
+                if ($data['userName'] == $_POST['username-log'])
+                    $_SESSION['user'] = $data;
+            }
             header('Location:homePage.php');
             die();
         }
     }
 
-        header('Location:signUp.php');
+    header('Location:signUp.php');
 }
-   // $users['userName'] = $_POST['username-log'];
-   // $users['password'] = $_POST['password-log'];
+// $users['userName'] = $_POST['username-log'];
+// $users['password'] = $_POST['password-log'];
 
 
 
@@ -59,9 +70,9 @@ $errors = [
 
 function userNameValidation($userName)
 {
-    global $jsonArray, $errors;
+    global $users, $errors;
     $userName_is_unique = true;
-    foreach ($jsonArray as $userData) {
+    foreach ($users as $userData) {
         if ($userData['userName'] == $userName) {
             $userName_is_unique = false;
         }
@@ -95,9 +106,9 @@ function nameValidation($name)
 
 function emailValidation($email)
 {
-    global $jsonArray, $errors;
+    global $users, $errors;
     $email_is_unique = true;
-    foreach ($jsonArray as $userData) {
+    foreach ($users as $userData) {
         if ($userData['email'] == $email) {
             $email_is_unique = false;
         }
@@ -187,8 +198,8 @@ function errorPassword($users)
 
 function SignIn($userName, $password): bool
 {
-    global $jsonArray;
-    foreach ($jsonArray as $user) {
+    global $users;
+    foreach ($users as $user) {
         if ($user['userName'] == $userName && $user['password'] == $password) {
 
             return true;
@@ -197,4 +208,3 @@ function SignIn($userName, $password): bool
     }
     return false;
 }
-
