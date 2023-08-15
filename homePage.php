@@ -1,9 +1,14 @@
 <?php
 //session_start();
 include_once 'chat.php';
+include_once 'Connection.php';
+$connection=Connection::getInstance()->getPdo();
 
 $userName = $_SESSION['user']['userName'];
-$users = json_decode(file_get_contents('userData.json'), 1);
+//$users = json_decode(file_get_contents('userData.json'), 1);
+$stmt=$connection->prepare('select * from users');
+$stmt->execute();
+$users=$stmt->fetchAll();
 
 //$_SESSION['img']=@$_FILES['file'];
 //if (isset($_POST['btnFile']))
@@ -116,17 +121,25 @@ $users = json_decode(file_get_contents('userData.json'), 1);
 
                 <ul class="list-unstyled">
                     <?php
-                    $jsonChat = json_decode(file_get_contents('chat.json'), 1);
-                    foreach ($jsonChat as $key => $value) {
+                    //$jsonChat = json_decode(file_get_contents('chat.json'), 1);
+                    $stmt=$connection->prepare('select * from chat');
+                    $stmt->execute();
+                    $chat=$stmt->fetchAll();
+                    foreach ($chat as $key => $value) {
                         //var_dump($value);
+
                         $date = $value['date'];
                         $message = $value['message'];
                         $id = $value['id'];
+                        $userId=$value['user_id'];
+                        $stmt=$connection->prepare("select * from users where id='$userId'");
+                        $stmt->execute();
+                        $userData=$stmt->fetch();
                         if ($_SESSION['user']['userAdmin']){
                             $message=$message."<form action='delete.php' method='post'><button name='delete' type='submit' value='$id'>delete</button></form>";
                         }
-                        $user = $value['userName'];
-                        $profile = $value['img']
+                        $user = $userData['userName'];
+                        $profile = $userData['profilePic']
                         ?>
 
 
