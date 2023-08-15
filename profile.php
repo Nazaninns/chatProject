@@ -1,5 +1,7 @@
 <?php
+include_once 'Connection.php';
 session_start();
+$connection=Connection::getInstance()->getPdo();
 //login user
 $username = $_SESSION['user']['userName'];
 //var_dump($username);
@@ -18,18 +20,24 @@ if (isset($_POST['delete'])) {
 }
 //set profile pic
 if (isset($_POST['setProfile'])) {
-    $profileUser = json_decode(file_get_contents('userData.json'), 1);
-    foreach ($profileUser as $user => $data) {
-        if ($data['userName'] == $username) {
-            $data['profilePic'] = $_POST['setProfile'];
-            $profileUser[$user] = $data;
-        }
-        file_put_contents('userData.json', json_encode($profileUser, JSON_PRETTY_PRINT));
+    //$profileUser = json_decode(file_get_contents('userData.json'), 1);
+    $stmt=$connection->prepare('select * from users');
+    $stmt->execute();
+    $profileUser=$stmt->fetchAll();
+    // foreach ($profileUser as $user => $data) {
+    //     if ($data['userName'] == $username) {
+    //         $data['profilePic'] = $_POST['setProfile'];
+    //         $profileUser[$user] = $data;
+    //     }
+        //file_put_contents('userData.json', json_encode($profileUser, JSON_PRETTY_PRINT));
+        $setProfile=$_POST['setProfile'];
+        $stmt=$connection->prepare("update users set profilePic='$setProfile' where users.userName=:userName");
+        $stmt->execute(['userName'=>$username]);
 
         header('Location:homePage.php');
     }
 
-}
+//}
 //$new = json_decode(file_get_contents('chat.json'),1);
 //foreach ($new as $users => $item){
 //    $item['img'] = $_POST['setProfile'];
@@ -46,25 +54,32 @@ if (isset($_POST['submit'])) {
     move_uploaded_file($file['tmp_name'], './users/' . $username . '/pictures/' . $fileName);
 
     file_put_contents('./users/' . $username . '/bio/bio.txt', $_POST['bio']);
+    
 
-    $userData = json_decode(file_get_contents('userData.json'), 1);
+    //$userData = json_decode(file_get_contents('userData.json'), 1);
+    $stmt=$connection->prepare('select * from users');
+    $stmt->execute();
+    $userData=$stmt->fetchAll();
 ////    echo '<pre>';
 ////     var_dump($userData[2]);
 ////    echo '</pre>';
 ////     die();
-    foreach ($userData as $user => $data) {
-        if ($data['userName'] == $username) {
-            $userData[$user] = $data;
-            $data['bio'] = './users/' . $username . '/bio/bio.txt';
-            $userData[$user]=$data;
+//     foreach ($userData as $user => $data) {
+//         if ($data['userName'] == $username) {
+//             $userData[$user] = $data;
+//             $data['bio'] = './users/' . $username . '/bio/bio.txt';
+//             $userData[$user]=$data;
 
-////            echo '<pre>';
-////            var_dump($data);
-////            echo '</pre>';
-////            die();
-        }
-    }
-    file_put_contents('userData.json', json_encode($userData, JSON_PRETTY_PRINT));
+// ////            echo '<pre>';
+// ////            var_dump($data);
+// ////            echo '</pre>';
+// ////            die();
+//         }
+//     }
+    //file_put_contents('userData.json', json_encode($userData, JSON_PRETTY_PRINT));
+    $bio='./users/' . $username . '/bio/bio.txt';
+    $stmt=$connection->prepare("update users set bio='$bio' where users.userName=:userName");
+    $stmt->execute(['userName'=>$username]);
 
 }
 //put pics to variable
