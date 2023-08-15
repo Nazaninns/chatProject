@@ -1,18 +1,27 @@
 <?php
+include_once 'Connection.php';
 session_start();
+$connection=Connection::getInstance()->getPdo();
 //require_once 'homePage.php';
 date_default_timezone_set('asia/tehran');
 $userName = $_SESSION['user']['userName'];
 $userdata = $_SESSION['user'];
-$jsonArray = [];
+// echo'<pre>';
+// var_dump($userdata);
+// echo'</pre>';
+// die();
+//$jsonArray = [];
 $err=[
     'imgErr' => 'too large',
     'txtErr' => 'between 0 & 100',
     'blockedErr'=>'you are block'
 ];
-if (is_file('chat.json')) {
-    $jsonArray = json_decode(file_get_contents('chat.json'), 1);
-}
+// if (is_file('chat.json')) {
+//     $jsonArray = json_decode(file_get_contents('chat.json'), 1);
+// }
+$stmt=$connection->prepare('select * from chat');
+$stmt->execute();
+$chat=$stmt->fetchAll();
 if (isset($_POST['send'])) {
     if ($userdata['isBlocked']){
         $_SESSION['blckErr']=$err['blockedErr'];
@@ -24,10 +33,10 @@ if (isset($_POST['send'])) {
         }
         else{
         $message = stripslashes(htmlspecialchars($_POST['message']));
-        $dateMessage = date('h:i:s');
+        $dateMessage = date("Y/m/d h:i:s");
         $id = 1;
-        if (isset($jsonArray)) {
-            $id = count($jsonArray) + 1;
+        if (isset($chat)) {
+            $id = count($chat) + 1;
         }
         $chatProperty = [
             'message' => $message,
@@ -38,8 +47,10 @@ if (isset($_POST['send'])) {
         ];
 
 
-        $jsonArray[] = $chatProperty;
-        file_put_contents('chat.json', json_encode($jsonArray, JSON_PRETTY_PRINT));
+        //$jsonArray[] = $chatProperty;
+        //file_put_contents('chat.json', json_encode($jsonArray, JSON_PRETTY_PRINT));
+        $stmt=$connection->prepare('insert into chat(message,date,user_id)values(:message,:date,:user_id)');
+        $stmt->execute(['message'=>$message,'date'=>$dateMessage,'user_id'=>$userdata['id']]);
         //header('Location:homePage.php');
 //fwrite(fopen('./users/'.$userName.'/chat.txt','a+'),"\n".$dateMessage.':'.$message);
 //fclose(fopen('chat.txt','a+'));
@@ -64,8 +75,8 @@ if (isset($_POST['btnFile'])) {
             $picDir = './users/' . $userName . '/uploadImg/' . $fileName;
             $data = "<img style='width: 150px; border-radius:105px;height: 150px' src='$picDir' >";
 
-            if (isset($jsonArray)) {
-                $id = count($jsonArray) + 1;
+            if (isset($chat)) {
+                $id = count($chat) + 1;
             }
             $chatProperty = [
                 'message' => $data,
@@ -76,8 +87,10 @@ if (isset($_POST['btnFile'])) {
             ];
 
 
-            $jsonArray[] = $chatProperty;
-            file_put_contents('chat.json', json_encode($jsonArray, JSON_PRETTY_PRINT));
+            //$jsonArray[] = $chatProperty;
+            //file_put_contents('chat.json', json_encode($jsonArray, JSON_PRETTY_PRINT));
+            $stmt=$connection->prepare('insert into chat(message,date,user_id)values(:message,:date,:user_id)');
+            $stmt->execute(['message'=>$data,'date'=>$dateMessage,'user_id'=>$userdata['id']]);
             //header('Location:homePage.php');
 
             // var_dump($pics);die();
